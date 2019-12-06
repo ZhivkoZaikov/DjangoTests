@@ -35,41 +35,6 @@ class MainTestCase(APITestCase):
         self.c = Client()
         self.c.login(username='test', password='test')
 
-    # All of the functions defined in this class has assertions except for this one
-
-    # def post_category(self, name, url_list):
-    #     response = self.c.post(reverse(url_list), {'name': name}, format='json')
-    #     print(f'Successfully created {name} at {url_list} with status {response.status_code}')
-    #     return response
-
-    def post_duplicated_category(self, data, url_list):
-
-        response = self.c.post(reverse(url_list), data, format='json')
-        # print(f'The status code of the {name} category is {response.status_code} '
-        #       f'and should be 400 as such category exists')
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        return response
-
-    def post_another_category(self, data, url_list, model_name):
-        count_objects = model_name.objects.count()
-        response = self.c.post(reverse(url_list), data, format='json')
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert model_name.objects.count() == count_objects + 1
-        return response
-
-    def post_category_by_unanimous_user(self, data, url, model_name):
-
-        # data = {'name': name}
-        url = reverse(f'{url}')
-        response = self.client.post(url, data, format='json')
-
-        # print(f'Unauthorized attempt to create new category status: {response.status_code}')
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert model_name.objects.count() == 0
-        return response
-
     def post_category_by_authenticated_user(self, data, url, model_name):
 
         self.create_user_and_set_token_credentials()
@@ -78,9 +43,6 @@ class MainTestCase(APITestCase):
         assert response.status_code == status.HTTP_201_CREATED
         assert model_name.objects.count() == 1
 
-        # print('Print response data and items')
-        # print(data.items())
-        # print(response.data)
         for each_key in data:
             assert data[each_key] == response.data[each_key]
             # print(f'{data[each_key]} == {response.data[each_key]}')
@@ -95,6 +57,35 @@ class MainTestCase(APITestCase):
         #         assert data[i] == jsonResponse[i]
         #         # print(jsonResponse[i])
 
+        return response
+
+    def post_duplicated_category(self, data, url_list):
+
+        response = self.c.post(reverse(url_list), data, format='json')
+        # print(f'The status code of the {name} category is {response.status_code} '
+        #       f'and should be 400 as such category exists')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        return response
+
+    # presumably you have already used
+    # self.create_user_and_set_token_credentials()
+    # in tests and using it again would throw an error
+    # in this case use the below function to create another category
+    def post_another_category(self, data, url_list, model_name):
+        count_objects = model_name.objects.count()
+        response = self.c.post(reverse(url_list), data, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert model_name.objects.count() == count_objects + 1
+        return response
+
+    def post_category_by_unanimous_user(self, data, url, model_name):
+
+        url = reverse(f'{url}')
+        response = self.client.post(url, data, format='json')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert model_name.objects.count() == 0
         return response
 
     def post_category_by_authenticated_user_incorrect_date_format(self, data, url, model_name):
@@ -120,7 +111,6 @@ class MainTestCase(APITestCase):
                                 {model_name.objects.get().pk}), data, content_type='application/json')
         assert response_update_by_unanimous_user.status_code == status.HTTP_401_UNAUTHORIZED
         assert model_name.objects.get().id == 1
-        # assert model_name.objects.get().name != name_update
 
     def update_category_by_authenticated_user(self, data, url_detail, model_name):
 
@@ -129,7 +119,6 @@ class MainTestCase(APITestCase):
 
         assert response_update.status_code == status.HTTP_200_OK
         assert model_name.objects.get().id == 1
-        # assert model_name.objects.get().name == name_update
 
         url_get_genre = reverse(url_detail, None, {model_name.objects.get().pk})
         get_responce = self.client.get(url_get_genre, format='json')
@@ -140,7 +129,6 @@ class MainTestCase(APITestCase):
     def get_category(self, data, url, model_name):
         response_get = self.client.get(reverse(f'{url}'), data, format='json')
         assert response_get.status_code == status.HTTP_200_OK
-        # assert model_name.objects.get().name == name
         assert model_name.objects.get().id == 1
 
     def post_and_get_category(self, data, url, model_name):
@@ -197,17 +185,14 @@ class MainTestCase(APITestCase):
         try:
             url = reverse(url_detail, kwargs={'pk': model_name.objects.get(pk=pk).pk})
             response_delete = self.c.delete(url)
-            # print(f'Response delete non existing category: {response_delete.status_code}')
             assert False
         except model_name.DoesNotExist:
-            # print('Non existing category. No actions are performed!')
             assert True
 
-        # assert response_delete.status_code == status.HTTP_204_NO_CONTENT
         assert model_name.objects.count() == count_objects
 
 
-class LanguageCategoryTest(MainTestCase, APITestCase):
+class LanguageCategoryTest(MainTestCase):
 
     def test_post_and_get_category(self):
         self.post_and_get_category({'name': 'Spanish'}, 'language-list', Language)
@@ -254,7 +239,7 @@ class LanguageCategoryTest(MainTestCase, APITestCase):
         self.delete_category(1, 'language-detail', Language)
         self.delete_non_existing_category(1, 'language-detail', Language)
 
-class GenreCategoryTest(MainTestCase, APITestCase):
+class GenreCategoryTest(MainTestCase):
 
     # def post_genre_category(self, name):
     #     data = {'name': name}
@@ -453,35 +438,20 @@ class GenreCategoryTest(MainTestCase, APITestCase):
         # assert response_delete.status_code == status.HTTP_204_NO_CONTENT
         # assert Genre.objects.count() == count_objects - 1
 
-class AuthorCategoryTest(MainTestCase, APITestCase):
+class AuthorCategoryTest(MainTestCase):
     # pass
     def test_post_author_authenticated_user(self):
         data = {'first_name': 'John', 'about_the_author': 'XXX Info',
                         'last_name': 'Doe', 'date_of_birth': '2000-12-21', 'date_of_death': '2011-11-14'}
         response = self.post_category_by_authenticated_user(data, 'author-list', Author)
 
-    # def get_category(self, name, url, model_name):
         for key in data:
-            # print(responce.data[kye])
-            # print(responce.data[kye][0])
-            # print(type(responce.data[kye]))
-            # print('Date has wrong format' in response.data[key][0])
-            # assert ('Date has wrong format' in responce.data[kye]) == True
-            # assert 'Date has wrong format' in response.data[key][0]
             if key != None and response.data[key] != None:
-                # print(key)
-                # print(data[key])
-                # print(response.data[key])
-            # response_get = self.client.get(reverse('author-list'), {'first_name': 'John'}, format='json')
                 response_get = self.client.get(reverse('author-list'), {f'{key}': response.data[key]}, format='json')
-                # print('Print the Author GET resonse')
-                # print(response_get.data[0][key])
-                # print(response_get.data[key])
+
                 assert response_get.status_code == status.HTTP_200_OK
                 assert data[key] == response_get.data[0][key]
                 assert Author.objects.get().id == 1
-
-        # self.get_category('John', 'author-detail', Author)
 
     def test_post_author_incorrect_dates(self):
         data = {'first_name': 'Johny', 'last_name': 'Doed', 'date_of_birth': '20-12-21', 'date_of_death': '2012-12-12',
@@ -493,16 +463,12 @@ class AuthorCategoryTest(MainTestCase, APITestCase):
             # print(responce.data[kye][0])
             # print(type(responce.data[kye]))
             # print('Date has wrong format' in responce.data[kye][0])
-            # assert ('Date has wrong format' in responce.data[kye]) == True
             assert 'Date has wrong format' in responce.data[kye][0]
 
     def test_post_and_get_category(self):
         data = {'first_name': 'Johns', 'about_the_author': 'XXX Info',
                 'last_name': 'Doem', 'date_of_birth': '2000-12-12', 'date_of_death': '2012-11-12'}
         self.post_and_get_category(data, 'author-list', Author)
-        # self.post_and_get_category({'first_name': 'John', 'about_the_author': 'XXX Info',
-        #                 'last_name': 'Doe', 'date_of_birth': '2000-12-21', 'date_of_death': '2000-11-14'},
-        #                 'genre-list', Author)
 
     def test_post_by_unanimous_user(self):
         data = {'first_name': 'Johnson', 'about_the_author': 'XXX Info',
@@ -624,18 +590,13 @@ class AuthorCategoryTest(MainTestCase, APITestCase):
             # print('Date has wrong format' in response.data[key][0])
             assert 'Incorrect date assignment! Date of birth must be before date of death!' in response.data[key][0]
 
-class BookCategoryTest(MainTestCase, APITestCase):
+class BookCategoryTest(MainTestCase):
 
     def test_post_book_authenticated_use(self):
         print('START TESTING AUTHOR IN BOOK TEST')
 
         data_author = {'first_name': 'John', 'about_the_author': 'XXX Info',
                         'last_name': 'Doe', 'date_of_birth': '2000-12-21', 'date_of_death': '2011-11-14'}
-
-        # book_data = {'title': 'Book of John', 'author': reverse('author-detail', None, {Author.objects.get(pk=1).pk}),
-        #     'summary': 'Doe', 'copies': 3, 'loaned_copies': 0, 'available_copies': 3, 'published': '2000-12-21',
-        #     'date_added': '2011-12-21', 'language': reverse('language-detail', None, {Language.objects.get(pk=1).pk})}
-
 
         response = self.post_category_by_authenticated_user(data_author, 'author-list', Author)
         self.post_another_category({'name': 'Spanish'}, 'language-list', Language)
@@ -655,12 +616,6 @@ class BookCategoryTest(MainTestCase, APITestCase):
                 assert response_get.status_code == status.HTTP_200_OK
                 assert data_author[key] == response_get.data[0][key]
                 assert Author.objects.get().id == 1
-
-
-        url = 'book-list'
-
-        # response_book = self.c.post(reverse(f'{url}'), book_data, format='json')
-
 
         print(f'Book create status code is {response_book.status_code}')
         print(response_book.data)
