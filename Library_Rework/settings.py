@@ -37,11 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results',
     'rest_framework',
     'catalog',
+    'account',
+    'phonenumber_field',
     'django_extensions',
     'rest_framework.authtoken',
     'django_filters',
+    'languages_plus',
+    'countries_plus',
+    'django.contrib.sites'
 ]
 
 MIDDLEWARE = [
@@ -149,3 +155,21 @@ REST_FRAMEWORK = {
         # }
 }
 
+# CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_BROKER_URL = 'amqp://localhost'
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_RESULT_BACKEND = 'db+sqlite:///results.sqlite'
+# CELERY_TASK_SERIALIZER = 'json'
+
+DEFAULT_FROM_EMAIL = 'your_email@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'your_email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your_password'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+SITE_ID = 1
