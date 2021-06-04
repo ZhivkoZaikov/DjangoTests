@@ -4,7 +4,7 @@ billiard==3.6.1.0
 celery==4.3.0
 certifi==2019.11.28
 chardet==3.0.4
-Django==2.2
+Django==2.2.21
 django-celery-results==1.1.2
 django-countries-plus==1.2.1
 django-extensions==2.2.5
